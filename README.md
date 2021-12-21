@@ -1,7 +1,8 @@
-Keanelek Enns
-V00875807
-UVIC CSC 360 Assignment 1
-Due Jan. 31, 2019
+#### Keanelek Enns
+#### V00875807
+#### UVIC CSC 360 Assignment 1
+#### Due Jan. 31, 2019
+
 
 I received some inspiration from the tutorial posted at https://brennan.io/2015/01/16/write-a-shell-in-c/.
 
