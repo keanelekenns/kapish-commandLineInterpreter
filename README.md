@@ -1,15 +1,13 @@
-
-
 Keanelek Enns
 V00875807
-CSC 360 Assignment 1
+UVIC CSC 360 Assignment 1
 Due Jan. 31, 2019
 
 I received some inspiration from the tutorial posted at https://brennan.io/2015/01/16/write-a-shell-in-c/.
 
 I also conversed with a few peers, namely Nat Comeau, Louie Kedziora, and Dana Wiltsie. No code was shared between us.
-	
-So to run my code, one must call make, then ./kapish (it is also possible to call make kapish.o and run ./kapish.o but the user must change its permissions).
+
+To run this code, one must call make, then ./kapish (it is also possible to call make kapish.o and run ./kapish.o but the user must change its permissions).
 
 All commands must be the very first argument given (just as with any other typical shell); this includes ctrl+d which behaves like exit.
 If a user attempts to exit with ctrl+d after typing arguments, it is not likely to work (so far during testing it has
