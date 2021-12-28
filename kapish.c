@@ -4,7 +4,7 @@ CSC 360 Assignment 1: kapish
 Name: kapish.c
 Author: Keanelek Enns V00875807
 Date Created: Jan. 25, 2019
-Last Updated: Jan. 31, 2019
+Last Updated: Dec. 28, 2021
 Description: A killer application interactive UNIX shell
 (i.e. a basic command line interpreter) with 5 built in 
 commands: cd, setenv var [value], unsetenv var, history, and exit.
@@ -17,206 +17,8 @@ commands: cd, setenv var [value], unsetenv var, history, and exit.
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
+#include "dll.h"
 
-/*
-=============================================================================================
-Node
-=============================================================================================
-*/
-typedef struct Node{
-	char* data;
-	struct Node *next;
-	struct Node *prev;
-}Node;
-
-Node* create_node(char* new_data){
-	
-	Node* new_node = (Node*)malloc(sizeof(Node));
-	new_node->data = new_data;
-	new_node->next = NULL;
-	new_node->prev = NULL;
-	
-	return new_node;
-}
-
-void delete_node(Node* node){
-	if(node->next != NULL && node->prev != NULL){
-		if(node->next->prev == node){
-			node->next->prev = node->prev;
-		}
-		if(node->prev->next == node){
-			node->prev->next = node->next;
-		}
-	}else if(node->next != NULL && node->prev == NULL){
-		if(node->next->prev == node){
-			node->next->prev = NULL;
-		}
-	}else if(node->next == NULL && node->prev != NULL){
-		if(node->prev->next == node){
-			node->prev->next = NULL;
-		}
-	}//if both next and prev are null, then we are free to free node
-	
-	node->next = NULL;
-	node->prev = NULL;//not sure if this is necessary
-
-	free(node);
-}
-
-/*
-=============================================================================================
-Doubly Linked List
-=============================================================================================
-*/
-typedef struct DLL{
-	Node* head;
-	int size;
-}DLL;
-
-DLL* create_DLL(){
-	
-	DLL* new_dll = (DLL*)malloc(sizeof(DLL));
-	new_dll->head = NULL;
-	new_dll->size = 0;
-	
-	return new_dll;
-}
-
-void delete_DLL(DLL* list){
-	if(list->head == NULL){
-		free(list);
-		return;
-	}
-	Node* prev = list->head;
-	Node* curr = prev->next;
-	while(curr != NULL){
-		prev = curr;
-		curr = curr->next;
-		delete_node(prev->prev);
-	}
-	delete_node(prev);
-	free(list);
-}
-
-void insert_at(DLL* list, char* data, int pos){
-	
-	Node* node = create_node(data);
-	
-	if(list->head == NULL){
-		list->head = node;
-		list->size++;
-		return;
-	}
-	
-	if(pos < 0 || pos > list->size){
-		printf("Position index out of bounds.\n");
-		return;
-	}
-	if(pos == 0){
-		node->next = list->head;
-		list->head->prev = node;
-		list->head = node;
-		list->size++;
-		return;
-	}
-	
-	Node* temp = list->head;
-	
-	int i;
-	for(i = 0; i < pos-1; i++){
-		temp = temp->next;
-	}
-	
-	if(temp == NULL){
-		printf("Insertion error, node was not inserted");//shouldn't ever happen if pos is in bounds
-		return;
-	}
-	
-	node->next = temp->next;
-	node->prev = temp;
-	if(node->next != NULL){//if we are inserting at the end, node->next == NULL
-		node->next->prev = node;
-	}
-	node->prev->next = node;
-	
-	list->size ++;
-}
-
-void prepend(DLL* list, char* data){
-	insert_at(list, data, 0);
-}
-
-void append(DLL* list, char* data){
-	insert_at(list, data, list->size);
-}
-
-void delete_at(DLL* list, int pos){
-	
-	if(list->head == NULL){
-		printf("No nodes in DLL to delete.\n");
-		return;
-	}
-	
-	if(pos < 0 || pos > list->size - 1){
-		printf("Position index out of bounds.\n");
-		return;
-	}
-	
-	Node* temp = list->head;
-	
-	if(pos == 0){
-		list->head = temp->next;
-		delete_node(temp);
-		list->size--;
-		return;
-	}
-	
-	int i;
-	for(i = 0; i < pos; i++){
-		temp = temp->next;
-	}
-	
-	delete_node(temp);
-	list->size--;
-}
-
-char* get(DLL* list, int pos){
-	if(pos < 0 || pos > list->size - 1){
-		printf("Position index out of bounds.\n");
-		return 0;
-	}
-	if(list->head == NULL){
-		return NULL;
-	}
-	Node* temp = list->head;
-	
-	int i;
-	for(i = 0; i < pos; i++){
-		temp = temp->next;
-	}
-	return temp->data;
-}
-
-int size(DLL* list){
-	return list->size;
-}
-
-void print_DLL(DLL* list){
-	
-	Node* temp = list->head;
-	int i = 1;
-	while(temp != NULL){
-		printf("%d    %s\n", i, temp->data);
-		temp = temp->next;
-		i++;
-	}
-}
-
-/*
-=================================================================
-kapish code begins here
-=================================================================
-*/
 
 DLL* command_history;
 
@@ -364,7 +166,6 @@ int read_prompt_loop(){
 	
 	printf("? ");
 	
-	//read from stdin
 	line = (char*)malloc(sizeof(char)*biggest_line);
 	num = getline(&line, &biggest_line, stdin);
 	if(num == -1){
@@ -390,22 +191,19 @@ int read_prompt_loop(){
 	}else if(arguments[0][0] == '!'){
 		free(command); //don't need this anymore
 		arguments[0]++;//ignore the ! char
-		Node* temp = command_history->head;
 		int i = 0;
-		while(temp!=NULL){
-			if(strncmp(arguments[0], temp->data, strlen(arguments[0])) == 0){//found command that matches prefix
+		while(i < size(command_history)){
+			char* curr_command = get(command_history, i);
+			if(strncmp(arguments[0], curr_command, strlen(arguments[0])) == 0){//found command that matches prefix
 				arguments[0]--;//undo
-				char* command_copy = (char*)malloc((strlen(temp->data)+1)*sizeof(char));
-				command_copy = strncpy(command_copy, temp->data, strlen(temp->data)+1);//make a copy to make new arguments
+				char* command_copy = (char*)malloc((strlen(curr_command)+1)*sizeof(char));
+				command_copy = strncpy(command_copy, curr_command, strlen(curr_command)+1);//make a copy to make new arguments
 				char** new_args = tokenize(command_copy,delim);
 				
 				exit_stat = determine_and_execute_command(new_args);
 				
-				//be free!
-				int i=0;
-				while(new_args[i]!=NULL){
-					new_args[i] = NULL;
-					i++;
+				for( int j = 0; new_args[j] != NULL; j++ ){
+					new_args[j] = NULL;
 				}
 				free(new_args);
 				new_args = NULL;
@@ -413,7 +211,6 @@ int read_prompt_loop(){
 				command_copy = NULL;
 				break;
 			}
-			temp = temp->next;
 			i++;
 		}
 		if(i >= size(command_history)){//did not find anything
@@ -430,10 +227,8 @@ int read_prompt_loop(){
 	}
 	
 	//be free!
-	int i=0;
-	while(arguments[i]!=NULL){
+	for( int i = 0; arguments[i] != NULL; i++ ){
 		arguments[i] = NULL;
-		i++;
 	}
 	free(arguments);
 	arguments = NULL;
@@ -452,7 +247,6 @@ int main(int argc, char** argv){
 		home[(int)strlen(getenv("HOME"))+1] = '\0';
 		home = strcat(home, "/.kapishrc");
 	
-		//code for reading file was reused from previous assignment in SENG265
 		FILE* fp = fopen(home, "r");
 		free(home);
 		if(fp == NULL){
@@ -489,11 +283,9 @@ int main(int argc, char** argv){
 	command_history = create_DLL();
 	
 	while(read_prompt_loop()==1){};//Here is where the magic happens
-	
-	Node* temp = command_history->head;
-	while(temp!= NULL){
-		free(temp->data);//free the commands that we allocated in our code
-		temp = temp->next;
+
+	for( int i = 0; i < size(command_history); i++ ){
+		free(get(command_history, i)); //free the commands that we allocated
 	}
 	delete_DLL(command_history);
 	

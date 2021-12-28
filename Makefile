@@ -1,4 +1,10 @@
-kapish: kapish.o
-	gcc kapish.o -o kapish
-kapish.o: kapish.c
-	gcc -Wall -Werror -c kapish.c -o kapish.o
+CC=gcc
+CFLAGS=-Wall -Werror
+
+kapish: dll.o kapish.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+%.o : %.c
+	$(CC) $(CFLAGS) -c $^
+clean:
+	rm kapish *.o
