@@ -20,12 +20,6 @@ simply typing "!" and enter executes the last command.
 
 When killing a child process using ctrl+c, you must be in the kapish terminal (with the cursor blinking waiting for input).
 
-NOTE: My makefile was not working when trying to use multiple c files and write it in the format given (separate build types for kapish.o and kapish)
-I spent hours trying to figure it out and could not make anything work.
-So I have included all of the contents of my node and doublylinkedlist files
-in my kapish.c file. I hope that this will not affect any style points. I
-made it clear where the codes start and end.
-
 Running valgrind on kapish resulted in no possible memory leaks.
 
 Finally: I do not know how many bonus marks history is worth, but seeing as it was the most difficult part of the assignment,
